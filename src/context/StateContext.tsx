@@ -1,39 +1,80 @@
-import { createContext, ReactNode, SetStateAction, useContext, useState } from "react"
+import { createContext, ReactNode, SetStateAction, useContext, useEffect, useState } from "react"
 
 const Context = createContext<any>(undefined);
 
-export default function StateContext({ children }: any) {
+type StateContextProps = {
+    children: ReactNode,
+    cartValue: string,
+    deliveryDistance: string,
+    numberOfItems: string,
+    orderTime: Date,
+    deliveryFee: string,
+}
+
+export default function StateContext({ children }: StateContextProps) {
 
     const [cartValue, setCartValue] = useState<string>('');
     const [deliveryDistance, setDeliveryDistance] = useState<string>('');
     const [numberOfItems, setNumberOfItems] = useState<string>('');
 
-    const date = new Date().getTime() + 0 * 60 * 60 * 1000;
-    const [orderTime, setOrderTime] = useState<any>(new Date(date));
+    const [orderTimeDate, setOrderTimeDate] = useState<string>(
+        new Date().toISOString().slice(0, 10));
+    const [orderTimeHour, setOrderTimeHour] = useState<string>(
+        new Date().toISOString().slice(11, 16));
+
+    const [deliveryFee, setDeliveryFee] = useState<string>('');
+
+    const [isValidInputs, setIsValidInputs] = useState<boolean>(false);
 
 
-    const validateInput = (state: SetStateAction<any>, type: string | string[],
-        setErrorMessageState: SetStateAction<any>) => {
+    const checkInputType = (input: any) => {
+        let validInput = input;
+        if (validInput !== 'NaN' && validInput !== null && validInput !== undefined
+            && validInput !== '' && validInput !== 0) {
+            return validInput;
+        } else {
+            return 'bad input';
+        }
+    }
+
+
+
+
+    const validateInputffdddd = (state: SetStateAction<any>, type: string,
+        setValidState: SetStateAction<any>) => {
+
         let parsedInput = state;
 
-        switch (type) {
-            case 'int': parsedInput = parseInt(state); break;
-            case 'float': parsedInput = parseFloat(state); break;
-            case 'fixed': parsedInput = parseFloat(state).toFixed(2); break;
-            case 'date': parsedInput = new Date(state.getTime() + 0 * 60 * 60 * 1000); break;
+        if (isCartValueValid && isDeliveryDistanceValid &&
+            isNumberOfItemsValid && isOrderTimeDateValid) {
+            setIsValidInputs((prev: any) => true);
+        } else if (!isCartValueValid || !isDeliveryDistanceValid ||
+            !isNumberOfItemsValid || !isOrderTimeDateValid) {
+            setIsValidInputs((prev: any) => false);
         }
-        if (!isNaN(parsedInput) && parsedInput !== undefined && parsedInput !== null
-        ) {
-            setErrorMessageState('');
+
+        switch (type) {
+            case 'cartValue': parsedInput = parseFloat(state); break;
+            case 'deliveryDistance': parsedInput = parseInt(state); break;
+            case 'numberOfItems': parsedInput = parseInt(state); break;
+            case 'deliveryFee': parsedInput = parseFloat(state).toFixed(2); break;
+            case 'orderTimeDate': parsedInput = new Date(state).getDay(); break;
+            case 'hour': parsedInput = new Date(state).getHours(); break;
+        }
+        if (parsedInput !== 'NaN' && parsedInput !== null && parsedInput !== undefined
+            && parsedInput !== '' && parsedInput !== 0) {
+            setValidState((prev: any) => true);
             return parsedInput;
         } else {
-            setErrorMessageState('Please type a number.');
+            setValidState((prev: any) => false);
+            return state;
         }
 
     }
 
 
-    //calculator values
+
+    //calculator settings
     const cartValueSurchargeLimit = 10; //add surcharge
     const freeDeliveryAmount = 100;
     const distanceBaseFee = 2;
@@ -47,26 +88,64 @@ export default function StateContext({ children }: any) {
     const rushHourMultiplier = 1.2;
     const maxDeliveryFee = 15;
 
-    const [cartValueErrorMessage, setCartValueErrorMessage] = useState<string>('');
-    const [deliveryDistanceErrorMessage, setDeliveryDistanceErrorMessage] = useState<string>('');
-    const [numberOfItemsErrorMessage, setNumberOfItemsErrorMessage] = useState<string>('');
-    const [orderTimeErrorMessage, setOrderTimeErrorMessage] = useState<string>('');
-    const [deliveryFeeErrorMessage, setDeliveryFeeErrorMessage] = useState<string>('');
+    const calculatorValues = {
+        parsedCartValue: parseFloat(cartValue),
+        parsedDeliveryDistance: parseInt(deliveryDistance),
+        parsedNumberOfItems: parseInt(numberOfItems),
+        parsedOrderTimeDay: new Date(orderTimeDate).getDay(),
+        parsedOrderHour: new Date(orderTimeHour).getHours()
+    }
+    const { parsedCartValue, parsedDeliveryDistance, parsedNumberOfItems,
+        parsedOrderTimeDay, parsedOrderHour } = calculatorValues;
 
-    const [deliveryFee, setDeliveryFee] = useState<number>();
+    const [isValidStates, setIsValidStates] = useState<any>([
+        {
+            isCartValueValid: {
+                state: false,
+                id: 'cartValue'
+            }
+        },
+        { isDeliveryDistanceValid: false },
+        { isNumberOfItemsValid: false },
+        { isOrderTimeDateValid: false },
+        { isOrderTimeHourValid: false },
+    ]
+    )
+
+    const [{ isCartValueValid, isDeliveryDistanceValid, isNumberOfItemsValid,
+        isOrderTimeDateValid, isOrderTimeHourValid }] = isValidStates;
+
+
+
+
+    const validateInput = (state: any) => {
+        if (Object.values(calculatorValues).every(value => value !== undefined
+            && !isNaN(value) && value !== null && value !== 0)) {
+
+            setIsValidInputs((prevState) => true);
+            console.log(calculatorValues)
+        } else {
+            setIsValidInputs((prevState) => false);
+        }
+        switch (state) {
+            case isCartValueValid.id === 'cartValue': setIsValidStates((prev: any) => (
+                {
+                    ...prev, isCartValueValid: {
+                        ...prev.isCartValueValid,
+                        state: true
+                    }
+                })
+
+            )
+        }
+        console.log(isCartValueValid.state)
+    }
+
 
     const calculateDeliveryFee = () => {
-        let parsedCartValue = validateInput(cartValue, 'float', setCartValueErrorMessage);
-        let parsedDeliveryDistance = validateInput(deliveryDistance, 'int', setDeliveryDistanceErrorMessage);
-        let parsedNumberOfItems = validateInput(numberOfItems, 'int', setNumberOfItemsErrorMessage);
-        let parsedOrderTime = validateInput(orderTime, 'date', setOrderTimeErrorMessage);
-
 
         let fee = 0;
 
-        if (parsedCartValue >= freeDeliveryAmount) {
-            return setDeliveryFee(0)
-        }
         if (parsedCartValue < cartValueSurchargeLimit) {
             fee += cartValueSurchargeLimit - parsedCartValue;
         }
@@ -81,18 +160,20 @@ export default function StateContext({ children }: any) {
             fee += (parsedNumberOfItems - numberOfItemsSurchargeStart + 1)
                 * numberOfItemsSurchargeAmount;
         }
-        if (parsedOrderTime.getDay() === rushHourDay &&
-            parsedOrderTime.getHours() >= rushHourStart &&
-            parsedOrderTime.getHours() < rushHourEnd) {
+        if (parsedOrderTimeDay === rushHourDay &&
+            parsedOrderHour >= rushHourStart &&
+            parsedOrderHour < rushHourEnd) {
             fee *= rushHourMultiplier;
+        }
+
+        if (parsedCartValue >= freeDeliveryAmount) {
+            fee = 0;
         }
 
         fee > maxDeliveryFee ? fee = maxDeliveryFee : fee;
 
-        setDeliveryFee(validateInput(fee, 'fixed', setDeliveryFeeErrorMessage))
-
-        console.log(parsedCartValue, parsedDeliveryDistance, parsedNumberOfItems, parsedOrderTime, fee)
-
+        let fixedFee = fee.toFixed(2);
+        setDeliveryFee(fixedFee)
     }
 
 
@@ -101,24 +182,28 @@ export default function StateContext({ children }: any) {
             value={{
                 deliveryFee,
                 setDeliveryFee,
+                calculateDeliveryFee,
+                isCartValueValid,
+                isDeliveryDistanceValid,
+                isNumberOfItemsValid,
                 cartValue,
                 setCartValue,
                 deliveryDistance,
                 setDeliveryDistance,
                 numberOfItems,
                 setNumberOfItems,
-                orderTime,
-                setOrderTime,
-                calculateDeliveryFee,
-                cartValueErrorMessage,
-                deliveryDistanceErrorMessage,
-                numberOfItemsErrorMessage,
-                orderTimeErrorMessage,
-                setCartValueErrorMessage,
-                setDeliveryDistanceErrorMessage,
-                setNumberOfItemsErrorMessage,
-                setOrderTimeErrorMessage,
-                deliveryFeeErrorMessage
+                orderTimeDate,
+                setOrderTimeDate,
+                isValidInputs,
+                validateInput,
+                setIsValidInputs,
+                isOrderTimeDateValid,
+                calculatorValues,
+                orderTimeHour,
+                setOrderTimeHour,
+                isValidStates,
+                setIsValidStates
+
             }}
         >
             {children}

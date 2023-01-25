@@ -6,12 +6,13 @@ type OutputFieldProps = {
     form: string,
     htmlFor: string,
     output: string,
-    errorMessage: SetStateAction<any>
+    errorMessage: SetStateAction<any>,
+    showErrorMessage: boolean,
 }
 
 export default function OutputField(props: OutputFieldProps) {
 
-    const { form, htmlFor, output, errorMessage } = props;
+    const { form, htmlFor, output, errorMessage, showErrorMessage } = props;
 
     return (
         <output className={`${styles.p} mt-8`}
@@ -22,7 +23,7 @@ export default function OutputField(props: OutputFieldProps) {
             <span className='drop-shadow-xl text-white font-semibold'
             >{output}€
             </span>
-            {errorMessage}
+            {showErrorMessage && errorMessage}
         </output>
     )
 }

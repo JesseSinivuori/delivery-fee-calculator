@@ -1,3 +1,4 @@
+import { useStateContext } from "../context/StateContext";
 import { styles } from "../style"
 
 export type InputFieldProps = {
@@ -5,15 +6,17 @@ export type InputFieldProps = {
     type: string;
     text: string;
     errorMessage: any;
+    showErrorMessage: boolean;
     id: string;
     onChange: any;
-    value: any;
+    defaultValue: any;
 }
 
 export default function InputField(props: InputFieldProps) {
 
-    const { placeholder, type, text, errorMessage, id, onChange, value
-    } = props;
+    const { placeholder, type, text, errorMessage, id, onChange, defaultValue,
+        showErrorMessage } = props;
+
 
     return (
         <div className={`p-2 ${styles.boxWidth} ${styles.section}`}>
@@ -26,13 +29,13 @@ export default function InputField(props: InputFieldProps) {
             ${styles.inputOpacity} ${styles.border}`}
                 placeholder={placeholder}
                 type={type}
-                value={value}
                 onChange={onChange}
+                defaultValue={defaultValue}
             >
             </input>
             <p className={`${styles.p} p-1 text-xs text-center`}
             >
-                {errorMessage}
+                {showErrorMessage && errorMessage}
             </p>
         </div>
     )

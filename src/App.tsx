@@ -12,36 +12,54 @@ export default function App() {
 
   const { deliveryFee, cartValue, setCartValue,
     deliveryDistance, setDeliveryDistance, numberOfItems, setNumberOfItems,
-    orderTime, setOrderTime, calculateDeliveryFee, cartValueErrorMessage,
-    deliveryDistanceErrorMessage,
-    numberOfItemsErrorMessage,
-    orderTimeErrorMessage, setCartValueErrorMessage,
-    setDeliveryDistanceErrorMessage,
-    setNumberOfItemsErrorMessage,
-    setOrderTimeErrorMessage,
-    deliveryFeeErrorMessage
+    orderTimeDate, setOrderTimeDate, calculateDeliveryFee,
+    deliveryDistanceErrorMessage, setIsNumberOfItemsValid, setIsOrderTimeDateValid,
+    setIsCartValueValid, setIsDeliveryDistanceValid, setIsDeliveryFeeValid,
+    calculatorValues, orderTimeHour, setOrderTimeHour,
+    isValidStates, setIsValidStates,
+    isValidInputs, validateInput
   } = useStateContext();
 
+  const { isCartValueValid, isDeliveryDistanceValid, isNumberOfItemsValid,
+    isOrderTimeDateValid, isOrderTimeHourValid } = isValidStates;
+
+  const [notANumberErrorMessage, setNotANumberErrorMessage] = useState('Please enter a number');
 
   const [flyingYuho, setFlyingYuho] = useState(false);
   const [yuhoNormal, setYuhoNormal] = useState(true);
 
-  const handleClick = () => {
-    calculateDeliveryFee();
 
-    //yuho flies
-    if (yuhoNormal && !flyingYuho) {
-      setYuhoNormal(false)
-      setFlyingYuho(true)
-      setTimeout(() => {
-        setFlyingYuho(false)
-      }, 1000)
-      setTimeout(() => {
-        setYuhoNormal(true)
-      }, 8500)
+
+  const handleClick = () => {
+    console.log('@handleClick', isValidStates)
+    validateInput();
+
+    if (isValidInputs) {
+      calculateDeliveryFee();
+
+
+      //yuho flies
+      if (yuhoNormal && !flyingYuho) {
+        setYuhoNormal(false)
+        setFlyingYuho(true)
+        setTimeout(() => {
+          setFlyingYuho(false)
+        }, 1000)
+        setTimeout(() => {
+          setYuhoNormal(true)
+        }, 8500)
+      }
     }
   }
 
+
+  useEffect(() => {
+    console.log('@useEffect', isValidStates)
+    if (!isCartValueValid || !isDeliveryDistanceValid ||
+      !isNumberOfItemsValid || isOrderTimeDateValid) {
+
+    }
+  }, [cartValue, deliveryDistance, numberOfItems, orderTimeDate, orderTimeHour]);
 
 
   return (
@@ -59,46 +77,63 @@ export default function App() {
               placeholder={'€'}
               type={'text'}
               text={'Cart value:'}
-              errorMessage={cartValueErrorMessage}
+              errorMessage={notANumberErrorMessage}
               id={'cart-value'}
-              onChange={(e: any) => setCartValue(e.target.value)}
-              value={cartValue} />
+              onChange={(e: any) => setCartValue((prevState: any) =>
+                e.target.value)}
+              defaultValue={''}
+              showErrorMessage={isCartValueValid} />
             <InputField
               placeholder={'m'}
               type={'text'}
               text={'Delivery distance:'}
-              errorMessage={deliveryDistanceErrorMessage}
+              errorMessage={notANumberErrorMessage}
               id={'delivery-distance'}
-              onChange={(e: any) => setDeliveryDistance(e.target.value)}
-              value={deliveryDistance} />
+              onChange={(e: any) => setDeliveryDistance((prevState: any) =>
+                e.target.value)}
+              defaultValue={''}
+              showErrorMessage={isDeliveryDistanceValid} />
             <InputField
               placeholder={'0'}
               type={'text'}
               text={'Number of items:'}
-              errorMessage={numberOfItemsErrorMessage}
+              errorMessage={notANumberErrorMessage}
               id={'number-of-items'}
-              onChange={(e: any) => setNumberOfItems(e.target.value)}
-              value={numberOfItems} />
-
+              onChange={(e: any) => setNumberOfItems((prevState: any) =>
+                e.target.value)}
+              defaultValue={''}
+              showErrorMessage={isNumberOfItemsValid} />
             <InputField
               placeholder={''}
-              type={'datetime-local'}
+              type={'date'}
+              text={'Order date:'}
+              errorMessage={notANumberErrorMessage}
+              id={'order-date'}
+              // .getTime() === new Date().getTime() ? '' : new Date(orderTime).toISOString().slice(0, 10) */
+              defaultValue={''}
+              onChange={(e: any) => setOrderTimeDate((prevState: any) =>
+                e.target.value)}
+              showErrorMessage={isOrderTimeDateValid} />
+            <InputField
+              placeholder={''}
+              type={'time'}
               text={'Order time:'}
-              errorMessage={orderTimeErrorMessage}
+              errorMessage={notANumberErrorMessage}
               id={'order-time'}
-              value={
-                new Date((orderTime).getTime() + 0 * 60 * 60 * 1000).toISOString().substring(0, 16)}
-              onChange={(e: any) => setOrderTime(new Date(e.target.value))}
-            />
+              defaultValue={''}
+              onChange={(e: any) => setOrderTimeHour((prevState: any) =>
+                e.target.value)}
+              showErrorMessage={isOrderTimeDateValid} />
             <Button onClick={handleClick}
               styles={`${buttonStyles.blue}`}
               text={'Calculate'} />
-            {deliveryFee &&
+            {isValidInputs && deliveryFee &&
               <OutputField
                 form={'calculator'}
-                htmlFor={'cart-value delivery-distance number-of-items order-time'}
+                htmlFor={'cart-value delivery-distance number-of-items order-date order-time'}
                 output={deliveryFee}
-                errorMessage={deliveryFeeErrorMessage} />
+                errorMessage={deliveryDistanceErrorMessage}
+                showErrorMessage={isDeliveryDistanceValid} />
             }
           </form>
         </div>
