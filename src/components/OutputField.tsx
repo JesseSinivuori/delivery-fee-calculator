@@ -3,6 +3,7 @@ import { styles } from "../style"
 
 
 type OutputFieldProps = {
+    text: string,
     form: string,
     htmlFor: string,
     output: string,
@@ -12,15 +13,17 @@ type OutputFieldProps = {
 
 export default function OutputField(props: OutputFieldProps) {
 
-    const { form, htmlFor, output, errorMessage, showErrorMessage } = props;
+    const { form, htmlFor, output, errorMessage, showErrorMessage, text } = props;
 
     return (
-        <output className={`${styles.p} mt-8`}
+        <output className={`${styles.p} m-4 flex flex-col justify-center
+        items-center `}
             form={form}
             htmlFor={htmlFor}
         >
-            Delivery Price:{' '}
-            <span className='drop-shadow-xl text-white font-semibold'
+            {text}
+            <span className={`drop-shadow-xl text-white text-[24px] font-semibold
+                mx-4 mt-4`}
             >{output}€
             </span>
             {showErrorMessage && errorMessage}

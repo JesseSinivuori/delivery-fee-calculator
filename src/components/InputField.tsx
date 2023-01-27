@@ -1,38 +1,53 @@
-import { useStateContext } from "../context/StateContext";
-import { styles } from "../style"
+import { buttonStyles, iconStyles, styles } from "../style"
 
 export type InputFieldProps = {
-    placeholder: string;
+    placeholder?: string;
     type: string;
     text: string;
     errorMessage: any;
     showErrorMessage: boolean;
     id: string;
     onChange: any;
-    defaultValue: any;
+    value?: any;
+    defaultValue?: any;
+    onKeyDown?: any;
+    icon?: any;
 }
 
 export default function InputField(props: InputFieldProps) {
 
-    const { placeholder, type, text, errorMessage, id, onChange, defaultValue,
-        showErrorMessage } = props;
+    const { placeholder, type, text, errorMessage, id, onChange, value,
+        defaultValue, showErrorMessage, onKeyDown, icon } = props;
 
 
     return (
-        <div className={`p-2 ${styles.boxWidth} ${styles.section}`}>
+        <div className={`m-4 ${styles.boxWidth} ${styles.flexCol} relative`}>
             <label htmlFor={id}>
                 <p className={`${styles.p} indent-2`}>
                     {text}
                 </p>
             </label>
-            <input id={id} className={`${styles.p} ${styles.inputBox}
-            ${styles.inputOpacity} ${styles.border}`}
-                placeholder={placeholder}
-                type={type}
-                onChange={onChange}
-                defaultValue={defaultValue}
-            >
-            </input>
+            <div className={`relative`}>
+                <input id={id} className={`${styles.p} ${styles.inputBox}
+                    ${styles.inputOpacity} ${styles.borderSecondary}
+                    ${styles.boxWidth}`}
+                    placeholder={placeholder}
+                    type={type}
+                    onChange={onChange}
+                    value={value}
+                    defaultValue={defaultValue}
+                    onKeyDown={onKeyDown}
+                >
+                </input>
+                {icon &&
+                    <div className={`${iconStyles.inputIcon} 
+                    
+                    
+                    `}>
+                        {icon}
+                    </div>
+                }
+            </div>
             <p className={`${styles.p} p-1 text-xs text-center`}
             >
                 {showErrorMessage && errorMessage}

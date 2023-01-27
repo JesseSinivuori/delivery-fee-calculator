@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { styles } from "../style"
 
 
@@ -10,9 +10,6 @@ export default function DatePicker(props: DatePickerProps) {
 
     const [showDays, setShowDays] = useState(false);
     const [showHours, setShowDate] = useState(false);
-    const [orderTime, setOrderTime] = useState<Date>(new Date());
-    const [orderDay, setOrderDay] = useState<Number>();
-    const [orderHour, setOrderHour] = useState<Number>();
 
 
 
@@ -25,8 +22,46 @@ export default function DatePicker(props: DatePickerProps) {
         20, 21, 22, 23, 0
     ]
 
+    const ref = useRef<any>(null);
+
+    const [isVisible, setIsVisible] = useState(false);
+
+    useEffect(() => {
+        const handleClickOutside = (e: any) => {
+            if (e.target.closest('.my-div')) {
+                setIsVisible(false);
+            }
+        };
+        document.addEventListener('click', handleClickOutside);
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+
+        };
+    }, []);
+
+    const toggleDiv = () => {
+        setIsVisible((prev) => !prev);
+    };
+
+    useEffect(() => {
+
+        document.addEventListener("mousedown", handleClickOutside);
+
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isVisible]);
+
+    const handleClickOutside = (event: any) => {
+        if (ref.current && !ref.current.contains(event.target)) {
+
+            setIsVisible(false);
+        }
+    };
+
+
     return (
-        <div className={`p-2 ${styles.boxWidth} ${styles.section}`}>
+        <div className={`p-2 ${styles.boxWidth} ${styles.flexCol}`}>
             <label htmlFor={''}>
                 <p className={`${styles.p} indent-2 p`}>
                     {''}
@@ -35,7 +70,7 @@ export default function DatePicker(props: DatePickerProps) {
             <div className={`flex justify-around relative `}>
                 <button type='button'
                     className={`${styles.p} ${styles.inputBox} ${styles.inputOpacity}
-                    ${styles.border} px-6`}
+                    ${styles.borderSecondary} px-6`}
                     onClick={() => setShowDays((prev) => !prev)}
                 >
                     Day
@@ -62,16 +97,16 @@ export default function DatePicker(props: DatePickerProps) {
                 }
                 <button type='button'
                     className={`${styles.p} ${styles.inputBox} ${styles.inputOpacity}
-                    ${styles.border}
+                    ${styles.borderSecondary}
                      px-6`}
-                    onClick={() => setShowDate((prev) => !prev)}
+                    onClick={() => toggleDiv()}
                 >
                     Time
                 </button>
-                {showHours &&
-                    <div className={`${styles.p} ${styles.boxWidth} ${styles.inputBox} 
+                {isVisible &&
+                    <div ref={ref} className={`${styles.p} ${styles.boxWidth} ${styles.inputBox} 
                     absolute p-2 z-[1000] bg-opacity-100 bg-sec 
-                    
+                    my-div ${isVisible ? 'block' : 'hidden'}
                     `}>
                         <ul className={`max-h-[310px] overflow-x-hidden`}>
                             {hours.map((hour) => (
@@ -79,7 +114,7 @@ export default function DatePicker(props: DatePickerProps) {
                                 hover:bg-main hover:bg-opacity-0 overflow-hidden`}>
                                     <button type="button"
                                         className="w-full"
-                                        onClick={() => setShowDate((prev) => !prev)}
+                                        onClick={() => toggleDiv()}
                                     >
                                         {hour}:00
                                     </button>

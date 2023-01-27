@@ -1,181 +1,172 @@
-import { createContext, ReactNode, SetStateAction, useContext, useEffect, useState } from "react"
+import { createContext, ReactNode, useContext, useEffect, useState } from "react"
 
 const Context = createContext<any>(undefined);
 
 type StateContextProps = {
-    children: ReactNode,
-    cartValue: string,
-    deliveryDistance: string,
-    numberOfItems: string,
-    orderTime: Date,
-    deliveryFee: string,
+    children: ReactNode
 }
 
 export default function StateContext({ children }: StateContextProps) {
 
-    const [cartValue, setCartValue] = useState<string>('');
-    const [deliveryDistance, setDeliveryDistance] = useState<string>('');
-    const [numberOfItems, setNumberOfItems] = useState<string>('');
+    const [cartValue, setCartValue] = useState<string>('1');
+    const [deliveryDistance, setDeliveryDistance] = useState<string>('1');
+    const [numberOfItems, setNumberOfItems] = useState<string>('1');
 
+    const date = new Date(); //current date and time
     const [orderTimeDate, setOrderTimeDate] = useState<string>(
-        new Date().toISOString().slice(0, 10));
+        new Date().toISOString().slice(0, 10));//Date in ISO format (YYYY-MM-DD)
     const [orderTimeHour, setOrderTimeHour] = useState<string>(
-        new Date().toISOString().slice(11, 16));
+        new Date().toISOString().slice(11, 16)); //UTC Time in ISO format (HH:MM)
 
     const [deliveryFee, setDeliveryFee] = useState<string>('');
 
-    const [isValidInputs, setIsValidInputs] = useState<boolean>(false);
+    //must be true to calculate
+    const [isValidInputs, setIsValidInputs] = useState(false);
 
+    //format date + time to unix time to be able to use Date.getDay() and Date.getHours()
+    date.setDate(parseInt(orderTimeDate.slice(8, 10)));
+    date.setUTCHours(parseInt(orderTimeHour.slice(0, 2)));
+    date.setMinutes(parseInt(orderTimeHour.slice(3, 5)));
 
-    const checkInputType = (input: any) => {
-        let validInput = input;
-        if (validInput !== 'NaN' && validInput !== null && validInput !== undefined
-            && validInput !== '' && validInput !== 0) {
-            return validInput;
-        } else {
-            return 'bad input';
-        }
-    }
-
-
-
-
-    const validateInputffdddd = (state: SetStateAction<any>, type: string,
-        setValidState: SetStateAction<any>) => {
-
-        let parsedInput = state;
-
-        if (isCartValueValid && isDeliveryDistanceValid &&
-            isNumberOfItemsValid && isOrderTimeDateValid) {
-            setIsValidInputs((prev: any) => true);
-        } else if (!isCartValueValid || !isDeliveryDistanceValid ||
-            !isNumberOfItemsValid || !isOrderTimeDateValid) {
-            setIsValidInputs((prev: any) => false);
-        }
-
-        switch (type) {
-            case 'cartValue': parsedInput = parseFloat(state); break;
-            case 'deliveryDistance': parsedInput = parseInt(state); break;
-            case 'numberOfItems': parsedInput = parseInt(state); break;
-            case 'deliveryFee': parsedInput = parseFloat(state).toFixed(2); break;
-            case 'orderTimeDate': parsedInput = new Date(state).getDay(); break;
-            case 'hour': parsedInput = new Date(state).getHours(); break;
-        }
-        if (parsedInput !== 'NaN' && parsedInput !== null && parsedInput !== undefined
-            && parsedInput !== '' && parsedInput !== 0) {
-            setValidState((prev: any) => true);
-            return parsedInput;
-        } else {
-            setValidState((prev: any) => false);
-            return state;
-        }
-
-    }
-
-
-
-    //calculator settings
-    const cartValueSurchargeLimit = 10; //add surcharge
-    const freeDeliveryAmount = 100;
-    const distanceBaseFee = 2;
-    const firstDistanceFeeMeters = 1000;
-    const addDistanceFeeEveryMeters = 500;
-    const numberOfItemsSurchargeStart = 5; //start adding surcharge at 5 items
-    const numberOfItemsSurchargeAmount = 0.50;
-    const rushHourDay = 5; //5 = friday, 6 = saturday, etc.
-    const rushHourStart = 15; //15:00
-    const rushHourEnd = 19; //19:00
-    const rushHourMultiplier = 1.2;
-    const maxDeliveryFee = 15;
-
+    //convert input strings to numbers / validate inputs
     const calculatorValues = {
         parsedCartValue: parseFloat(cartValue),
         parsedDeliveryDistance: parseInt(deliveryDistance),
-        parsedNumberOfItems: parseInt(numberOfItems),
-        parsedOrderTimeDay: new Date(orderTimeDate).getDay(),
-        parsedOrderHour: new Date(orderTimeHour).getHours()
+        parsedNumberOfItems: parseInt(numberOfItems), //
+        parsedOrderTimeDate: date.getDay(), //getDay() returns day of the week (0 = sunday, 1 = monday etc.)
+        parsedOrderTimeHour: date.getHours(), //getHours() returns UTC time
     }
+
     const { parsedCartValue, parsedDeliveryDistance, parsedNumberOfItems,
-        parsedOrderTimeDay, parsedOrderHour } = calculatorValues;
+        parsedOrderTimeDate, parsedOrderTimeHour } = calculatorValues;
 
-    const [isValidStates, setIsValidStates] = useState<any>([
-        {
-            isCartValueValid: {
-                state: false,
-                id: 'cartValue'
-            }
-        },
-        { isDeliveryDistanceValid: false },
-        { isNumberOfItemsValid: false },
-        { isOrderTimeDateValid: false },
-        { isOrderTimeHourValid: false },
-    ]
-    )
-
-    const [{ isCartValueValid, isDeliveryDistanceValid, isNumberOfItemsValid,
-        isOrderTimeDateValid, isOrderTimeHourValid }] = isValidStates;
-
-
-
-
-    const validateInput = (state: any) => {
-        if (Object.values(calculatorValues).every(value => value !== undefined
-            && !isNaN(value) && value !== null && value !== 0)) {
-
-            setIsValidInputs((prevState) => true);
-            console.log(calculatorValues)
-        } else {
-            setIsValidInputs((prevState) => false);
-        }
-        switch (state) {
-            case isCartValueValid.id === 'cartValue': setIsValidStates((prev: any) => (
-                {
-                    ...prev, isCartValueValid: {
-                        ...prev.isCartValueValid,
-                        state: true
-                    }
-                })
-
-            )
-        }
-        console.log(isCartValueValid.state)
-    }
-
+    //calculator settings
+    const cartValueSurchargeUntilEuros = 10; //add surcharge if cart value is less than 10
+    const freeDeliveryEuros = 100; //free delivery if cart value is more than 100
+    const distanceBaseFeeEuros = 2; //distance base fee for first 1km
+    const distanceBaseFeeMeters = 1000; //distance base fee 
+    const addDistanceFeeEveryMeters = 500; //add 0.50€ for every 500m
+    const numberOfItemsSurchargeStart = 5; //start adding surcharge at 5 items
+    const numberOfItemsSurchargeEuros = 0.50; //add 0.50€ for every item after 5
+    const rushHourDay = 5; //5 = friday, 6 = saturday, 7 = sunday etc.
+    const rushHourStart = 15; //15:00
+    const rushHourEnd = 19; //19:00
+    const rushHourMultiplier = 1.2; //20% surcharge for rush hour
+    const maxDeliveryFeeEuros = 15; //max delivery fee is 15€
 
     const calculateDeliveryFee = () => {
-
+        //reset delivery fee
         let fee = 0;
 
-        if (parsedCartValue < cartValueSurchargeLimit) {
-            fee += cartValueSurchargeLimit - parsedCartValue;
+        //add surcharge if cart value is less than 10
+        if (parsedCartValue < cartValueSurchargeUntilEuros) {
+            fee += cartValueSurchargeUntilEuros - parsedCartValue;
         }
-        if (parsedDeliveryDistance <= firstDistanceFeeMeters) {
-            fee += distanceBaseFee;
+        //add distance base fee for first 1km
+        if (parsedDeliveryDistance <= distanceBaseFeeMeters) {
+            fee += distanceBaseFeeEuros;
         }
-        if (parsedDeliveryDistance > firstDistanceFeeMeters) {
-            fee += distanceBaseFee + Math.ceil((parsedDeliveryDistance - firstDistanceFeeMeters)
+        //add 0.50€ for every 500m
+        if (parsedDeliveryDistance > distanceBaseFeeMeters) {
+            fee += distanceBaseFeeEuros + Math.ceil((parsedDeliveryDistance - distanceBaseFeeMeters)
                 / addDistanceFeeEveryMeters)
         }
+        //add 0.50€ for every item after 5
         if (parsedNumberOfItems >= numberOfItemsSurchargeStart) {
             fee += (parsedNumberOfItems - numberOfItemsSurchargeStart + 1)
-                * numberOfItemsSurchargeAmount;
+                * numberOfItemsSurchargeEuros;
         }
-        if (parsedOrderTimeDay === rushHourDay &&
-            parsedOrderHour >= rushHourStart &&
-            parsedOrderHour < rushHourEnd) {
+        //20% surcharge for rush hour
+        if (parsedOrderTimeDate === rushHourDay &&
+            parsedOrderTimeHour >= rushHourStart &&
+            parsedOrderTimeHour < rushHourEnd) {
             fee *= rushHourMultiplier;
         }
-
-        if (parsedCartValue >= freeDeliveryAmount) {
+        //free delivery if cart value is more than 100
+        if (parsedCartValue >= freeDeliveryEuros) {
             fee = 0;
         }
+        //max delivery fee is 15€
+        fee > maxDeliveryFeeEuros ? fee = maxDeliveryFeeEuros : fee;
 
-        fee > maxDeliveryFee ? fee = maxDeliveryFee : fee;
-
+        //round to 2 decimals
         let fixedFee = fee.toFixed(2);
-        setDeliveryFee(fixedFee)
+        setDeliveryFee((prevFee) => fixedFee)
     }
 
+    //valid input states
+    const [isValidStates, setIsValidStates] = useState<any>([
+        {
+            isCartValueValid: false,
+            isDeliveryDistanceValid: false,
+            isNumberOfItemsValid: false,
+            isOrderTimeDateValid: false,
+            isOrderTimeHourValid: false
+        }
+    ])
+
+    const { isCartValueValid, isDeliveryDistanceValid, isNumberOfItemsValid,
+        isOrderTimeDateValid, isOrderTimeHourValid } = isValidStates;
+
+    //set valid input states
+    const setErrorStates = () => {
+        parsedCartValue ? setIsValidStates((prevState: any) => ({
+            ...prevState, isCartValueValid: true
+        })) : setIsValidStates((prevState: any) => ({
+            ...prevState, isCartValueValid: false
+        }))
+        parsedDeliveryDistance ? setIsValidStates((prevState: any) => ({
+            ...prevState, isDeliveryDistanceValid: true
+        })) : setIsValidStates((prevState: any) => ({
+            ...prevState, isDeliveryDistanceValid: false
+        }))
+        parsedNumberOfItems ? setIsValidStates((prevState: any) => ({
+            ...prevState, isNumberOfItemsValid: true
+        })) : setIsValidStates((prevState: any) => ({
+            ...prevState, isNumberOfItemsValid: false
+        }))
+        orderTimeDate ? setIsValidStates((prevState: any) => ({
+            ...prevState, isOrderTimeDateValid: true
+        })) : setIsValidStates((prevState: any) => ({
+            ...prevState, isOrderTimeDateValid: false
+        }))
+        orderTimeHour ? setIsValidStates((prevState: any) => ({
+            ...prevState, isOrderTimeHourValid: true
+        })) : setIsValidStates((prevState: any) => ({
+            ...prevState, isOrderTimeHourValid: false
+        }))
+    }
+
+    //update error states after 200ms on every input change
+    useEffect(() => {
+        const setErrorStatesTimeout = setTimeout(() => {
+            setErrorStates();
+        }, 200)
+        return () => {
+            clearTimeout(setErrorStatesTimeout);
+        }
+    }, [cartValue, deliveryDistance, numberOfItems, orderTimeDate, orderTimeHour]);
+
+    //set valid input states on every input change
+    const setValidInputs = () => {
+        //check if inputs are valid
+        if (isCartValueValid && isDeliveryDistanceValid && isNumberOfItemsValid
+            && isOrderTimeDateValid && isOrderTimeHourValid) {
+
+            //can calculate delivery fee if all inputs are valid
+            setIsValidInputs((prevState) => true);
+        } else {
+            setIsValidInputs((prevState) => false);
+
+            //set delivery fee to empty string if inputs are not valid / hide delivery fee
+            setDeliveryFee((prevFee) => '')
+        }
+    }
+
+    //check if inputs are valid on every input change
+    useEffect(() => {
+        setValidInputs();
+    }, [isValidStates])
 
     return (
         <Context.Provider
@@ -183,9 +174,6 @@ export default function StateContext({ children }: StateContextProps) {
                 deliveryFee,
                 setDeliveryFee,
                 calculateDeliveryFee,
-                isCartValueValid,
-                isDeliveryDistanceValid,
-                isNumberOfItemsValid,
                 cartValue,
                 setCartValue,
                 deliveryDistance,
@@ -195,15 +183,14 @@ export default function StateContext({ children }: StateContextProps) {
                 orderTimeDate,
                 setOrderTimeDate,
                 isValidInputs,
-                validateInput,
+                setValidInputs,
                 setIsValidInputs,
-                isOrderTimeDateValid,
                 calculatorValues,
                 orderTimeHour,
                 setOrderTimeHour,
                 isValidStates,
-                setIsValidStates
-
+                setIsValidStates,
+                setErrorStates
             }}
         >
             {children}
