@@ -1,159 +1,161 @@
 import { useState } from 'react';
-import { InputField, Yuho } from './components';
-import Button from './components/Button';
-import OutputField from './components/OutputField';
+import { AiOutlineCalendar } from 'react-icons/ai';
+import { BiTimeFive } from 'react-icons/bi';
+import { FaHashtag } from 'react-icons/fa';
+import { IoSettingsOutline } from 'react-icons/io5';
+import { MdOutlineEuroSymbol } from 'react-icons/md';
+import { BoxMain, Button, InputField, OutputField, Settings, Yuho } from './components';
 import { useStateContext } from './context/StateContext';
 import './index.css'
-import { buttonStyles, iconStyles, styles } from './style'
-import { IoSettingsOutline } from 'react-icons/io5'
-import { MdOutlineEuroSymbol } from 'react-icons/md'
-import { AiOutlineCalendar } from 'react-icons/ai'
-import { BiTimeFive } from 'react-icons/bi'
-import { FaHashtag } from 'react-icons/fa'
+import { buttonStyles, styles } from './style'
+import { AiOutlineHome } from 'react-icons/ai'
 
 export default function App() {
 
   const { deliveryFee, calculateDeliveryFee, cartValue, setCartValue,
     deliveryDistance, setDeliveryDistance, numberOfItems, setNumberOfItems,
-    orderTimeDate, setOrderTimeDate, isValidInputs, validateInputs,
-    orderTimeHour, setOrderTimeHour, isValidStates,
-    setErrorStates
+    orderTimeDate, setOrderTimeDate, orderTimeHour, setOrderTimeHour,
+    isValidInputs, handleInputChange,
   } = useStateContext();
 
-  const { isCartValueValid, isDeliveryDistanceValid, isNumberOfItemsValid,
-    isOrderTimeDateValid, isOrderTimeHourValid } = isValidStates;
+  const notANumberErrorMessage = 'Please enter a number';
+  const notADateErrorMessage = 'Please enter a date';
+  const notATimeErrorMessage = 'Please enter a time';
 
-  const [notANumberErrorMessage, setNotANumberErrorMessage] = useState('Please enter a number');
-  const [notADateErrorMessage, setNotADateErrorMessage] = useState('Please enter a date');
-  const [notATimeErrorMessage, setNotATimeErrorMessage] = useState('Please enter a time');
-
-  const [flyingYuho, setFlyingYuho] = useState(false);
-  const [yuhoNormal, setYuhoNormal] = useState(true);
-
-  const [calculateIsClicked, setCalculateIsClicked] = useState(false);
+  const [calculateIsClicked, setCalculateIsClicked] = useState(false)
+  const [flyYuho, setFlyYuho] = useState(false)
 
   //calculate button
   const handleClick = () => {
-    setCalculateIsClicked((prevState) => true);
+    setCalculateIsClicked((prev) => true);
 
     if (isValidInputs) {
       calculateDeliveryFee();
 
-      //yuho goes flying for 8,5 seconds
-      if (yuhoNormal && !flyingYuho) {
-        setYuhoNormal((prevState) => false)
-        setFlyingYuho((prevState) => true)
-        const yuhoWillFlyBack = setTimeout(() => {
-          setFlyingYuho((prevState) => false)
-        }, 1000)
-        const yuhoWillBeNormal = setTimeout(() => {
-          setYuhoNormal((prevState) => true)
-        }, 7500)
-      }
+      //fly yuho
+      setFlyYuho((prev) => true);
+      const yuhoTimeout = setTimeout(() => {
+        setFlyYuho((prev) => false);
+      }, 100);
     }
   }
 
+  const [toggleSettings, setToggleSettings] = useState(false)
+
+  const handleClickSettings = () => {
+    setToggleSettings((prev: boolean) => !prev)
+  }
+
   //can press enter to calculate
-  const handleKeyPress = (e: any) => {
+  const handleKeyDown = (e: any) => {
     if (e.key === 'Enter') {
       handleClick();
     }
   }
 
   return (
-    <div className={` pt-8 xss:pt-10 ${styles.flexCol}`}>
-      <Yuho flyingYuho={flyingYuho} yuhoNormal={yuhoNormal} />
-      <h1 className={`${styles.h1} text-center mb-8 xss:mb-10 drop-shadow-xl`}>
-        Delivery Fee Calculator
-      </h1>
-      <div className={`${styles.flexCenter}`}>
-        <div className={`${styles.borderMain}  border-opacity-25 p-4 
-        rounded-xl focus-within:bg-opacity-20 hover:bg-opacity-25 ease-in-out duration-500 
-        bg-sec backdrop-blur-[24px] bg-opacity-0 z-[1]`}>
-          <form id='calculator' className={`flex-col ${styles.flexCenter}`}>
-            <InputField
-              placeholder={''}
-              type={'text'}
-              text={'Cart value:'}
-              errorMessage={notANumberErrorMessage}
-              id={'cart-value'}
-              onChange={(e: any) => setCartValue(e.target.value)}
-              defaultValue={cartValue}
-              showErrorMessage={calculateIsClicked && !isCartValueValid}
-              onKeyDown={handleKeyPress}
-              icon={<MdOutlineEuroSymbol />} />
-            <InputField
-              placeholder={''}
-              type={'text'}
-              text={'Delivery distance:'}
-              errorMessage={notANumberErrorMessage}
-              id={'delivery-distance'}
-              onChange={(e: any) => setDeliveryDistance(e.target.value)}
-              defaultValue={deliveryDistance}
-              showErrorMessage={calculateIsClicked && !isDeliveryDistanceValid}
-              onKeyDown={handleKeyPress}
-              icon={'m'} />
-            <InputField
-              placeholder={''}
-              type={'text'}
-              text={'Number of items:'}
-              errorMessage={notANumberErrorMessage}
-              id={'number-of-items'}
-              onChange={(e: any) => setNumberOfItems(e.target.value)}
-              defaultValue={numberOfItems}
-              showErrorMessage={calculateIsClicked && !isNumberOfItemsValid}
-              onKeyDown={handleKeyPress}
-              icon={<FaHashtag />} />
-            <InputField
-              placeholder={''}
-              type={'date'}
-              text={'Order date:'}
-              errorMessage={notADateErrorMessage}
-              id={'order-date'}
-              value={orderTimeDate}
-              onChange={(e: any) => setOrderTimeDate((prev: any) => e.target.value)}
-              showErrorMessage={calculateIsClicked && !isOrderTimeDateValid}
-              onKeyDown={handleKeyPress}
-              icon={<AiOutlineCalendar />}
-            />
-            <InputField
-              type={'time'}
-              text={'Order time:'}
-              errorMessage={notATimeErrorMessage}
-              id={'order-time'}
-              value={orderTimeHour}
-              onChange={(e: any) => setOrderTimeHour((prev: any) => e.target.value)}
-              showErrorMessage={calculateIsClicked && !isOrderTimeHourValid}
-              onKeyDown={handleKeyPress}
-              icon={<BiTimeFive />}
-            />
-            <Button
-              onClick={handleClick}
-              styles={`${buttonStyles.blue}`}
-              text={'Calculate'} />
-            <div className={`${!deliveryFee && 'opacity-0 translate-y-[-100%]'}
-              ease-in-out duration-1000 opacity-100 translate-y-0
-              `}>
-              {deliveryFee &&
-                <OutputField
-                  form={'calculator'}
-                  htmlFor={'cart-value delivery-distance number-of-items order-date order-time'}
-                  output={deliveryFee}
-                  errorMessage={''}
-                  showErrorMessage={false}
-                  text={'Delivery Fee:'} />
-              }
-            </div>
-          </form>
+    <div className={`${styles.flexCol} ${styles.flexCenter} pt-8`}>
+      <Yuho flyYuho={flyYuho} />
+      {!toggleSettings &&
+        <div>
+          <h1 className={`${styles.h1} text-center mb-8 drop-shadow-xl h1-gradient`}>
+            Delivery Fee Calculator
+          </h1>
+          <div className={`${styles.flexCenter}`}>
+            <BoxMain>
+              <form id='calculator' onKeyDown={handleKeyDown}
+                className={`flex-col ${styles.flexCenter}`}>
+                <InputField
+                  type={'text'}
+                  text={'Cart value'}
+                  textRows={1}
+                  errorMessage={notANumberErrorMessage}
+                  id={'cart-value'}
+                  onChange={(e: any) => handleInputChange(e.target.value, setCartValue)}
+                  value={cartValue}
+                  showErrorMessage={calculateIsClicked && (!cartValue || cartValue < 0.01)}
+                  infoMessage={'The total value of your cart in euros.'}
+                  showInfoMessage={true}
+                  icon={<MdOutlineEuroSymbol />} />
+                <InputField
+                  type={'text'}
+                  text={'Delivery distance'}
+                  textRows={1}
+                  errorMessage={notANumberErrorMessage}
+                  id={'delivery-distance'}
+                  onChange={(e: any) => handleInputChange(e.target.value, setDeliveryDistance, true)}
+                  value={deliveryDistance}
+                  showErrorMessage={calculateIsClicked && (!deliveryDistance || deliveryDistance < 1)}
+                  infoMessage={`The distance between the restaurant and you in meters. (1000 meters = 1 km)`}
+                  showInfoMessage={true}
+                  icon={'m'} />
+                <InputField
+                  type={'text'}
+                  text={'Number of items'}
+                  textRows={1}
+                  errorMessage={notANumberErrorMessage}
+                  id={'number-of-items'}
+                  onChange={(e: any) => handleInputChange(e.target.value, setNumberOfItems, true)}
+                  value={numberOfItems}
+                  showErrorMessage={calculateIsClicked && (!numberOfItems || numberOfItems < 1)}
+                  infoMessage={'The number of items in your cart.'}
+                  showInfoMessage={true}
+                  icon={<FaHashtag />} />
+                <InputField
+                  type={'date'}
+                  text={'Order date'}
+                  textRows={1}
+                  errorMessage={notADateErrorMessage}
+                  id={'order-date'}
+                  value={orderTimeDate}
+                  onChange={(e: any) => setOrderTimeDate(e.target.value)}
+                  showErrorMessage={calculateIsClicked && !orderTimeDate}
+                  infoMessage={'The date of your order.'}
+                  showInfoMessage={true}
+                  icon={<AiOutlineCalendar />}
+                />
+                <InputField
+                  type={'time'}
+                  text={'Order time'}
+                  textRows={1}
+                  errorMessage={notATimeErrorMessage}
+                  id={'order-time'}
+                  value={orderTimeHour}
+                  onChange={(e: any) => setOrderTimeHour(e.target.value)}
+                  showErrorMessage={calculateIsClicked && !orderTimeHour}
+                  infoMessage={'The time of your order in UTC time.'}
+                  showInfoMessage={true}
+                  icon={<BiTimeFive />}
+                />
+                <Button
+                  onClick={handleClick}
+                  buttonStyles={`${buttonStyles.blue} mt-8 m-4 `}
+                  text={'Calculate'} />
+                {deliveryFee &&
+                  <OutputField
+                    form={'calculator'}
+                    htmlFor={'cart-value delivery-distance number-of-items order-date order-time'}
+                    output={deliveryFee}
+                    text={'Delivery Fee'} />
+                }
+              </form>
+            </BoxMain>
+          </div>
         </div>
-
-      </div>
-
-      <nav className={`justify-around bottom-0 flex z-[999] p-4`}>
-        <Button onClick={() => { }}
-          styles={`${buttonStyles.icon}`}
+      }
+      {toggleSettings &&
+        <Settings />
+      }
+      <nav className={`${styles.flexCenter} p-4`}>
+        <Button onClick={handleClickSettings}
+          buttonStyles={`${buttonStyles.icon} 
+                `}
           text={''}
-          icon={<IoSettingsOutline className='w-[34px] h-[34px]' />} />
+          icon={
+            !toggleSettings ?
+              <IoSettingsOutline className='w-[34px] h-[34px]' />
+              : <AiOutlineHome className='w-[34px] h-[34px]' />
+          } />
       </nav>
     </div>
   )

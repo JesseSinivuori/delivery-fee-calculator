@@ -1,4 +1,3 @@
-import { SetStateAction } from "react";
 import { styles } from "../style"
 
 
@@ -7,8 +6,8 @@ type OutputFieldProps = {
     form: string,
     htmlFor: string,
     output: string,
-    errorMessage: SetStateAction<any>,
-    showErrorMessage: boolean,
+    errorMessage?: string,
+    showErrorMessage?: boolean,
 }
 
 export default function OutputField(props: OutputFieldProps) {

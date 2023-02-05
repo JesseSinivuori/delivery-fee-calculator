@@ -8,8 +8,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'main': 'rgb(0, 157, 224);',
-        'sec': '#000a91',
+        'primary': '#009de0',
+        'secondary': '#000090',
+        'tertiary': '#1b50e0',
       },
       fontFamily: {
         poppins: 'Poppins, sans-serif'
@@ -17,7 +18,7 @@ module.exports = {
     },
 
     screens: {
-      xss: "430px",
+      xss: "350px",
       xs: "480px",
       ss: "620px",
       sm: "768px",

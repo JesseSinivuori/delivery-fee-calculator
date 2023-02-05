@@ -1,32 +1,49 @@
 import { useEffect, useState } from "react";
 import { yuho } from "../assets";
-import { useStateContext } from "../context/StateContext";
 import './Yuho.css';
 
 type YuhoProps = {
-    flyingYuho: boolean
-    yuhoNormal: boolean
+    flyYuho: boolean; //if true yuho will do a flying animation
 }
 
 export default function Yuho(props: YuhoProps) {
 
-    const { flyingYuho, yuhoNormal } = props;
+    const { flyYuho } = props;
+
+    //yuho animation states
+    const [flyingYuho, setFlyingYuho] = useState(false);
+    const [yuhoNormal, setYuhoNormal] = useState(true);
+
+    useEffect(() => {
+        //yuho goes flying for 8.5 seconds
+        if (flyYuho && yuhoNormal) {
+            setYuhoNormal((prevState: any) => false)
+            setFlyingYuho((prevState: any) => true)
+            const yuhoWillFlyBack = setTimeout(() => {
+                setFlyingYuho((prevState: any) => false)
+            }, 1000)
+            const yuhoWillBeNormal = setTimeout(() => {
+                setYuhoNormal((prevState: any) => true)
+            }, 8500)
+        }
+    }, [flyYuho]);
 
     return (
         <div className="relative">
             <img src={yuho} className={`
-                ${yuhoNormal && 'yuho-normal-bottom-right'}
-                ${flyingYuho ? 'yuho-flying-top-left' : 'yuho-fyling-back-to-bottom-right'}
-                fixed hidden xss:flex z-[0] 
-                bottom-100 xss:bottom-0 ss:-bottom-3 md:-bottom-10 xl:-bottom-28
-                -right-2 ss:-right-6 md:-right-10 xl:-right-24
-                w-[100px] h-[100px] object-contain
+                ${yuhoNormal && 'yuho-normal-bottom-left'}
+                ${flyingYuho ? 'yuho-flying-top-left' : 'yuho-flying-back-to-bottom-right'}
+                fixed hidden xs:flex z-[0] 
+                bottom-0 xss:bottom-0 md:-bottom-10 lg:-bottom-20 xl:-bottom-32
+                -right-3 ss:-right-6 sm:-right-8 md:-right-8 lg:-right-16 xl:-right-28
                 min-w-[50px] min-h-[50px]
-                xs:w-[125px] xss:h-[125px] ss:w-[225px] ss:h-[225px]
-                md:w-[400px] md:h-[400px] lg:w-[600px] lg:h-[600px]
+                xss:w-[125px] xss:h-[125px]
+                ss:w-[200px] ss:h-[200px]
+                sm:w-[260px] sm:h-[260px]
+                md:w-[400px] md:h-[400px]
+                lg:w-[600px] lg:h-[600px]
                 xl:w-[900px] xl:h-[900px]
-                mr-0 xs:mr-0 ss:mr-0 sm:mr-8 lg:mr-0
-                drop-shadow-xl rounded-full cursor-default
+                drop-shadow-xl
             `} >
             </img>
         </div>

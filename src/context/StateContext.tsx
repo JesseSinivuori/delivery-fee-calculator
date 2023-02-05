@@ -8,9 +8,9 @@ type StateContextProps = {
 
 export default function StateContext({ children }: StateContextProps) {
 
-    const [cartValue, setCartValue] = useState<string>('1');
-    const [deliveryDistance, setDeliveryDistance] = useState<string>('1');
-    const [numberOfItems, setNumberOfItems] = useState<string>('1');
+    const [cartValue, setCartValue] = useState<string>(''); //euros
+    const [deliveryDistance, setDeliveryDistance] = useState<string>(''); //meters
+    const [numberOfItems, setNumberOfItems] = useState<string>('');
 
     const date = new Date(); //current date and time
     const [orderTimeDate, setOrderTimeDate] = useState<string>(
@@ -23,17 +23,19 @@ export default function StateContext({ children }: StateContextProps) {
     //must be true to calculate
     const [isValidInputs, setIsValidInputs] = useState(false);
 
+    //must be true to calculate
+    const [isValidSettings, setIsValidSettings] = useState(false);
+
     //format date + time to unix time to be able to use Date.getDay() and Date.getHours()
-    date.setDate(parseInt(orderTimeDate.slice(8, 10)));
-    date.setUTCHours(parseInt(orderTimeHour.slice(0, 2)));
+    date.setHours(parseInt(orderTimeHour.slice(0, 2)));
     date.setMinutes(parseInt(orderTimeHour.slice(3, 5)));
 
     //convert input strings to numbers / validate inputs
     const calculatorValues = {
-        parsedCartValue: parseFloat(cartValue),
-        parsedDeliveryDistance: parseInt(deliveryDistance),
-        parsedNumberOfItems: parseInt(numberOfItems), //
-        parsedOrderTimeDate: date.getDay(), //getDay() returns day of the week (0 = sunday, 1 = monday etc.)
+        parsedCartValue: parseFloat(cartValue), //euros
+        parsedDeliveryDistance: parseInt(deliveryDistance), //meters
+        parsedNumberOfItems: parseInt(numberOfItems),
+        parsedOrderTimeDate: new Date(orderTimeDate).getDay(), //getDay() returns day of the week (0 = sunday, 1 = monday etc.)
         parsedOrderTimeHour: date.getHours(), //getHours() returns UTC time
     }
 
@@ -41,18 +43,19 @@ export default function StateContext({ children }: StateContextProps) {
         parsedOrderTimeDate, parsedOrderTimeHour } = calculatorValues;
 
     //calculator settings
-    const cartValueSurchargeUntilEuros = 10; //add surcharge if cart value is less than 10
-    const freeDeliveryEuros = 100; //free delivery if cart value is more than 100
-    const distanceBaseFeeEuros = 2; //distance base fee for first 1km
-    const distanceBaseFeeMeters = 1000; //distance base fee 
-    const addDistanceFeeEveryMeters = 500; //add 0.50€ for every 500m
-    const numberOfItemsSurchargeStart = 5; //start adding surcharge at 5 items
-    const numberOfItemsSurchargeEuros = 0.50; //add 0.50€ for every item after 5
-    const rushHourDay = 5; //5 = friday, 6 = saturday, 7 = sunday etc.
-    const rushHourStart = 15; //15:00
-    const rushHourEnd = 19; //19:00
-    const rushHourMultiplier = 1.2; //20% surcharge for rush hour
-    const maxDeliveryFeeEuros = 15; //max delivery fee is 15€
+    const [cartValueSurchargeUntilEuros, setCartValueSurchargeUntilEuros] = useState(10); //add surcharge if cart value is less than 10
+    const [freeDeliveryEuros, setFreeDeliveryEuros] = useState(100); //free delivery if cart value is more than 100
+    const [distanceBaseFeeEuros, setDistanceBaseFeeEuros] = useState(2); //distance base fee for first 1km
+    const [distanceBaseFeeMeters, setDistanceBaseFeeMeters] = useState(1000); //distance base fee
+    const [addDistanceFeeEveryMeters, setAddDistanceFeeEveryMeters] = useState(500); //add extra distance fee every 500m
+    const [extraDistanceFeeEuros, setExtraDistanceFeeEuros] = useState(1); //extra distance fee is 1€
+    const [numberOfItemsSurchargeStart, setNumberOfItemsSurchargeStart] = useState(5); //start adding surcharge at 5 items
+    const [numberOfItemsSurchargeEuros, setNumberOfItemsSurchargeEuros] = useState(0.50); //add 0.50€ for every item after 5
+    const [rushHourDay, setRushHourDay] = useState(5); //5 = friday, 6 = saturday, 7 = sunday etc.
+    const [rushHourStart, setRushHourStart] = useState(15); //15:00
+    const [rushHourEnd, setRushHourEnd] = useState(19); //19:00
+    const [rushHourMultiplier, setRushHourMultiplier] = useState(1.2); //20% surcharge for rush hour
+    const [maxDeliveryFeeEuros, setMaxDeliveryFeeEuros] = useState(15); //max delivery fee is 15€
 
     const calculateDeliveryFee = () => {
         //reset delivery fee
@@ -66,17 +69,20 @@ export default function StateContext({ children }: StateContextProps) {
         if (parsedDeliveryDistance <= distanceBaseFeeMeters) {
             fee += distanceBaseFeeEuros;
         }
-        //add 0.50€ for every 500m
+        //add 1€ for every 500m after 1km
         if (parsedDeliveryDistance > distanceBaseFeeMeters) {
             fee += distanceBaseFeeEuros + Math.ceil((parsedDeliveryDistance - distanceBaseFeeMeters)
-                / addDistanceFeeEveryMeters)
+                / addDistanceFeeEveryMeters) * extraDistanceFeeEuros;
         }
+        console.log(Math.ceil((parsedDeliveryDistance - distanceBaseFeeMeters)
+        / addDistanceFeeEveryMeters))
+
         //add 0.50€ for every item after 5
         if (parsedNumberOfItems >= numberOfItemsSurchargeStart) {
             fee += (parsedNumberOfItems - numberOfItemsSurchargeStart + 1)
                 * numberOfItemsSurchargeEuros;
         }
-        //20% surcharge for rush hour
+        //20% surcharge for rush hour, friday 15:00 - 19:00
         if (parsedOrderTimeDate === rushHourDay &&
             parsedOrderTimeHour >= rushHourStart &&
             parsedOrderTimeHour < rushHourEnd) {
@@ -94,67 +100,19 @@ export default function StateContext({ children }: StateContextProps) {
         setDeliveryFee((prevFee) => fixedFee)
     }
 
-    //valid input states
-    const [isValidStates, setIsValidStates] = useState<any>([
-        {
-            isCartValueValid: false,
-            isDeliveryDistanceValid: false,
-            isNumberOfItemsValid: false,
-            isOrderTimeDateValid: false,
-            isOrderTimeHourValid: false
-        }
-    ])
-
-    const { isCartValueValid, isDeliveryDistanceValid, isNumberOfItemsValid,
-        isOrderTimeDateValid, isOrderTimeHourValid } = isValidStates;
-
-    //set valid input states
-    const setErrorStates = () => {
-        parsedCartValue ? setIsValidStates((prevState: any) => ({
-            ...prevState, isCartValueValid: true
-        })) : setIsValidStates((prevState: any) => ({
-            ...prevState, isCartValueValid: false
-        }))
-        parsedDeliveryDistance ? setIsValidStates((prevState: any) => ({
-            ...prevState, isDeliveryDistanceValid: true
-        })) : setIsValidStates((prevState: any) => ({
-            ...prevState, isDeliveryDistanceValid: false
-        }))
-        parsedNumberOfItems ? setIsValidStates((prevState: any) => ({
-            ...prevState, isNumberOfItemsValid: true
-        })) : setIsValidStates((prevState: any) => ({
-            ...prevState, isNumberOfItemsValid: false
-        }))
-        orderTimeDate ? setIsValidStates((prevState: any) => ({
-            ...prevState, isOrderTimeDateValid: true
-        })) : setIsValidStates((prevState: any) => ({
-            ...prevState, isOrderTimeDateValid: false
-        }))
-        orderTimeHour ? setIsValidStates((prevState: any) => ({
-            ...prevState, isOrderTimeHourValid: true
-        })) : setIsValidStates((prevState: any) => ({
-            ...prevState, isOrderTimeHourValid: false
-        }))
-    }
-
-    //update error states after 200ms on every input change
-    useEffect(() => {
-        const setErrorStatesTimeout = setTimeout(() => {
-            setErrorStates();
-        }, 200)
-        return () => {
-            clearTimeout(setErrorStatesTimeout);
-        }
-    }, [cartValue, deliveryDistance, numberOfItems, orderTimeDate, orderTimeHour]);
-
     //set valid input states on every input change
     const setValidInputs = () => {
-        //check if inputs are valid
-        if (isCartValueValid && isDeliveryDistanceValid && isNumberOfItemsValid
-            && isOrderTimeDateValid && isOrderTimeHourValid) {
+        //check if all of the inputs are numbers and over the minimum values
+        if (Object.values(calculatorValues).every((value) => !isNaN(value)
+            && value !== undefined
+            && parsedCartValue >= 0.01
+            && parsedDeliveryDistance >= 1
+            && parsedNumberOfItems >= 1
+        )) {
 
             //can calculate delivery fee if all inputs are valid
             setIsValidInputs((prevState) => true);
+
         } else {
             setIsValidInputs((prevState) => false);
 
@@ -163,10 +121,28 @@ export default function StateContext({ children }: StateContextProps) {
         }
     }
 
-    //check if inputs are valid on every input change
+    //makes the inputs only accept numbers
+    //setting disable0 = true will make the input not accept typing 0
+    const handleInputChange = (input: any, setState: any, disable0?: boolean) => {
+        if (!isNaN(input)) {
+            setState((prev: any) => input);
+        }
+
+        if (disable0 && input === '0') {
+            setState((prev: any) => '');
+        }
+
+        else {
+            setState((prev: any) => prev);
+        }
+
+    }
+
+    //update valid states on every input change
     useEffect(() => {
         setValidInputs();
-    }, [isValidStates])
+    }, [cartValue, deliveryDistance, numberOfItems, orderTimeDate, orderTimeHour]);
+
 
     return (
         <Context.Provider
@@ -188,9 +164,33 @@ export default function StateContext({ children }: StateContextProps) {
                 calculatorValues,
                 orderTimeHour,
                 setOrderTimeHour,
-                isValidStates,
-                setIsValidStates,
-                setErrorStates
+                cartValueSurchargeUntilEuros,
+                setCartValueSurchargeUntilEuros,
+                distanceBaseFeeEuros,
+                setDistanceBaseFeeEuros,
+                distanceBaseFeeMeters,
+                setDistanceBaseFeeMeters,
+                addDistanceFeeEveryMeters,
+                setAddDistanceFeeEveryMeters,
+                numberOfItemsSurchargeStart,
+                setNumberOfItemsSurchargeStart,
+                numberOfItemsSurchargeEuros,
+                setNumberOfItemsSurchargeEuros,
+                rushHourDay,
+                setRushHourDay,
+                rushHourStart,
+                setRushHourStart,
+                rushHourEnd,
+                setRushHourEnd,
+                rushHourMultiplier,
+                setRushHourMultiplier,
+                freeDeliveryEuros,
+                setFreeDeliveryEuros,
+                maxDeliveryFeeEuros,
+                setMaxDeliveryFeeEuros,
+                extraDistanceFeeEuros,
+                setExtraDistanceFeeEuros,
+                handleInputChange
             }}
         >
             {children}
