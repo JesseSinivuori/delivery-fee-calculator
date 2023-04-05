@@ -55,7 +55,7 @@ export default function App() {
 
   return (
     <div className={`${styles.flexCol} ${styles.flexCenter} pt-8`}>
-      <Yuho flyYuho={flyYuho} />
+      {/** <Yuho flyYuho={flyYuho} /> */}
       {!toggleSettings &&
         <div>
           <h1 className={`${styles.h1} text-center mb-8 drop-shadow-xl h1-gradient`}>
