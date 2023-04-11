@@ -7,9 +7,9 @@ type LayoutProps = {
 export default function Layout({ children }: LayoutProps) {
 
     return (
-        <div className="h-screen w-screen bg-primary overflow-auto
+        <div className="h-[100svh] w-full bg-primary overflow-auto
         font-poppins">
-            <div className='absolute bg-primary-gradient inset-0
+            <div className='absolute bg-primary-gradient w-full h-full
             opacity-25
             '></div>
             <div className="relative">
