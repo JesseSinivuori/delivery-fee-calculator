@@ -4,7 +4,7 @@ import { BiTimeFive } from 'react-icons/bi';
 import { FaHashtag } from 'react-icons/fa';
 import { IoSettingsOutline } from 'react-icons/io5';
 import { MdOutlineEuroSymbol } from 'react-icons/md';
-import { BoxMain, Button, InputField, OutputField, Settings, Yuho } from './components';
+import { BoxMain, Button, InputField, OutputField, Settings } from './components';
 import { useStateContext } from './context/StateContext';
 import './index.css'
 import { buttonStyles, styles } from './style'
